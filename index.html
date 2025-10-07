@@ -3,16 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Minimal Hobby Landing</title>
+  <title>odr_club</title>
   <style>
     :root { --btn-fg: #e6e6e6; }
     * { box-sizing: border-box; }
-    html, body { height: 100%; }
+    html, body { height: 100%; cursor: none; } /* hide default cursor for trail */
     body {
       margin: 0;
       background: #0b0c0f;
       color: #e6e6e6;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
     }
 
     .page {
@@ -21,7 +22,8 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      padding-top: 10px; /* raised closer to top */
+      padding-top: 10px; /* near the top */
+      position: relative;
     }
 
     .wrap { text-align: center; }
@@ -29,71 +31,62 @@
     .brand {
       letter-spacing: 0.07em;
       user-select: none;
-      font-family: 'Segoe UI Historic', 'Segoe UI Symbol', sans-serif;
+      font-family: 'Segoe UI Historic', 'Segoe UI Symbol', sans-serif; /* Glagolitic */
       font-weight: 200;
       font-size: clamp(28px, 6vw, 56px);
       line-height: 1.1;
       margin-bottom: 0;
-      transform: scaleY(0.9);
+      transform: scaleY(0.9);               /* 10% vertical squish */
       filter: drop-shadow(0 6px 22px rgba(0,0,0,.4));
       animation: chameleon 24s ease-in-out infinite;
     }
 
     @keyframes chameleon {
       0%   { color: #ffffff; }
-      16.6%{ color: #ffd400; }
-      33.2%{ color: #ff3b30; }
-      49.8%{ color: #a855f7; }
-      66.4%{ color: #3b82f6; }
-      83%  { color: #22c55e; }
-      100% { color: #ffffff; }
+      16.6%{ color: #ffd400; }  /* yellow */
+      33.2%{ color: #ff3b30; }  /* red */
+      49.8%{ color: #a855f7; }  /* purple */
+      66.4%{ color: #3b82f6; }  /* blue */
+      83%  { color: #22c55e; }  /* green */
+      100% { color: #ffffff; }  /* smooth back to white */
     }
-
-    @media (prefers-reduced-motion: reduce) { .brand { animation: none; } }
 
     .buttons {
       display: inline-flex;
       justify-content: center;
       align-items: center;
-      font-family: Consolas, monospace;
-      margin-top: -4px;
+      font-family: Consolas, monospace;      /* your button font */
+      margin-top: -4px;                      /* tight to the title */
     }
 
     .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 120px;
-      height: 48px;
-      background: transparent;
-      color: var(--btn-fg);
-      border: none;
-      text-decoration: none;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 120px; height: 48px;
+      background: transparent; color: var(--btn-fg);
+      border: none; text-decoration: none;
       font-family: inherit;
-      font-weight: 600;
-      letter-spacing: 0.02em;
+      font-weight: 600; letter-spacing: .02em;
       font-size: 20px;
-      transition: all 0.25s ease;
+      transition: all .25s ease;
       border-radius: 10px;
-      margin: 0;
+      margin: 0;                              /* no gaps; separators handle spacing */
+      z-index: 2;
     }
+    .btn:hover { background:#fff; color:#000; text-shadow:none; }
+    .separator { color:#777; user-select:none; font-size:20px; margin:0; padding:0; }
+    .btn:active { transform: translateY(1px) scale(0.99); }
 
-    .btn:hover {
-      background: #ffffff;
-      color: #000000;
-      text-shadow: none;
-    }
-
-    .separator {
-      color: #777;
-      user-select: none;
-      font-size: 20px;
-      margin: 0;
-      padding: 0;
-    }
-
-    .btn:active {
-      transform: translateY(1px) scale(0.99);
+    /* Cursor trail dots */
+    .trail {
+      position: fixed;
+      width: 10px; height: 10px;
+      background: radial-gradient(circle, #ffffff 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0.7;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+      z-index: 1;
     }
   </style>
 </head>
@@ -110,5 +103,21 @@
       </nav>
     </div>
   </main>
+
+  <script>
+    // Simple cursor trail
+    document.addEventListener("mousemove", (e) => {
+      const dot = document.createElement("div");
+      dot.className = "trail";
+      dot.style.left = e.pageX + "px";
+      dot.style.top = e.pageY + "px";
+      document.body.appendChild(dot);
+      requestAnimationFrame(() => {
+        dot.style.opacity = "0";
+        dot.style.transform = "translate(-50%, -50%) scale(2)";
+      });
+      setTimeout(() => dot.remove(), 400); // a few tenths of a second
+    });
+  </script>
 </body>
 </html>
