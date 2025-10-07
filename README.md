@@ -1,1 +1,1 @@
-# odr_club
+# odrysian-club
