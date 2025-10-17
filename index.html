@@ -52,12 +52,14 @@
 
     @media (prefers-reduced-motion: reduce) { .brand { animation: none; } }
 
+    /* NAV (tabs) */
     .buttons {
       display: inline-flex;
       justify-content: center;
       align-items: center;
       font-family: Consolas, monospace;
       margin-top: -4px;
+      gap: 8px;
     }
 
     .btn {
@@ -77,40 +79,143 @@
       transition: all 0.25s ease;
       border-radius: 10px;
       margin: 0;
+      outline: none;
     }
+    .btn:hover { background: #ffffff; color: #000000; }
+    .btn:active { transform: translateY(1px) scale(0.99); }
 
-    .btn:hover {
+    /* Active tab style */
+    .btn[aria-selected="true"] {
       background: #ffffff;
       color: #000000;
-      text-shadow: none;
+      box-shadow: 0 6px 24px rgba(255,255,255,0.08), inset 0 0 0 2px rgba(0,0,0,0.5);
     }
 
     .separator {
       color: #777;
       user-select: none;
       font-size: 20px;
-      margin: 0;
+      margin: 0 2px;
       padding: 0;
     }
 
-    .btn:active {
-      transform: translateY(1px) scale(0.99);
+    /* CONTENT AREA */
+    .content {
+      width: min(1000px, 92vw);
+      margin: 28px auto 64px;
     }
+
+    .panel {
+      display: none;
+      animation: fadeIn 220ms ease-out;
+    }
+    .panel[data-active="true"] { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: #12141a;
+      border: 1px solid #23252e;
+      border-radius: 14px;
+      padding: 20px;
+      line-height: 1.6;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.25);
+    }
+    .card h2 {
+      margin-top: 0;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .muted { color: #a1a1aa; font-size: 0.95rem; }
   </style>
 </head>
 <body>
   <main class="page">
     <div class="wrap">
       <h1 class="brand" aria-label="Page name">ⰑⰄⰓⰋⰞⰟⰐ</h1>
-      <nav class="buttons" aria-label="Primary">
-        <a class="btn" href="#features" title="Explore features">Features</a>
-        <span class="separator">|</span>
-        <a class="btn" href="#forum" title="Visit the forum">Forum</a>
-        <span class="separator">|</span>
-        <a class="btn" href="https://patreon.com/odrysian_" target="_blank" rel="noreferrer" title="Support on Patreon">Patreon</a>
+
+      <!-- Tabs -->
+      <nav class="buttons" role="tablist" aria-label="Primary">
+        <a id="tab-features"  class="btn" role="tab" href="#features" aria-controls="panel-features" aria-selected="true"  title="Explore features">Features</a>
+        <span class="separator" aria-hidden="true">|</span>
+        <a id="tab-forum"     class="btn" role="tab" href="#forum"    aria-controls="panel-forum"    aria-selected="false" title="Visit the forum">Forum</a>
+        <span class="separator" aria-hidden="true">|</span>
+        <a id="tab-patreon"   class="btn" role="tab" href="#patreon"  aria-controls="panel-patreon"  aria-selected="false" title="Support on Patreon">Patreon</a>
       </nav>
     </div>
+
+    <!-- Panels -->
+    <section class="content">
+      <div id="panel-features" class="panel" role="tabpanel" aria-labelledby="tab-features" data-active="true">
+        <div class="card">
+          <h2>Features</h2>
+          <p class="muted">This is the default tab. Put your features list, screenshots, or roadmap here.</p>
+        </div>
+      </div>
+
+      <div id="panel-forum" class="panel" role="tabpanel" aria-labelledby="tab-forum" data-active="false">
+        <div class="card">
+          <h2>Forum</h2>
+          <p class="muted">Link out to your community or embed discussions.</p>
+        </div>
+      </div>
+
+      <div id="panel-patreon" class="panel" role="tabpanel" aria-labelledby="tab-patreon" data-active="false">
+        <div class="card">
+          <h2>Patreon</h2>
+          <p class="muted">Support the project on Patreon. You can also keep the external link if you prefer.</p>
+          <p><a href="https://patreon.com/odrysian_" target="_blank" rel="noreferrer">Open Patreon ↗</a></p>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <script>
+    // Simple tab router with hash support + ARIA syncing
+    (function () {
+      const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+      const panels = Array.from(document.querySelectorAll('[role="tabpanel"]'));
+
+      function activate(id) {
+        // Default to features if nothing or unknown
+        const target = (id || 'features').replace('#', '');
+        const tab = document.getElementById('tab-' + target) || document.getElementById('tab-features');
+        const panel = document.getElementById('panel-' + target) || document.getElementById('panel-features');
+
+        // Update tabs
+        tabs.forEach(t => t.setAttribute('aria-selected', String(t === tab)));
+        // Update panels
+        panels.forEach(p => p.dataset.active = String(p === panel));
+      }
+
+      // On load: prefer hash, else default to features
+      activate(location.hash.slice(1));
+
+      // Click handler (keeps hash for deep-linking)
+      tabs.forEach(t => {
+        t.addEventListener('click', (e) => {
+          // allow default anchor behavior to set hash, then handle
+          requestAnimationFrame(() => activate(new URL(t.href).hash));
+        });
+        // Basic keyboard left/right navigation
+        t.addEventListener('keydown', (e) => {
+          if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+          e.preventDefault();
+          const i = tabs.indexOf(t);
+          const next = e.key === 'ArrowRight'
+            ? tabs[(i + 1) % tabs.length]
+            : tabs[(i - 1 + tabs.length) % tabs.length];
+          next.focus();
+          next.click();
+        });
+      });
+
+      // React to manual hash changes (e.g., back button)
+      window.addEventListener('hashchange', () => activate(location.hash.slice(1)));
+    })();
+  </script>
 </body>
 </html>
-
